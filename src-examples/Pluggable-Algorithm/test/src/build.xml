@@ -1,0 +1,139 @@
+<project name="jena-algorithm-extension-test" default="all" basedir=".">
+
+	<!-- Property file for build.xml -->
+	<property file="build.properties" />
+
+	 <target name="all" depends="init, compile-src-jena-2.5.6-classes, compile-src-jena-2.5.7-classes, create-jena-2.5.6-patch, create-jena-2.5.7-patch, compile-test-classes, run-algorithm-extension-test"
+          description="Compile and run the failed and successful tests" />
+
+	<!-- clean classes -->
+	<target name="clean" description="remove all contents to ensure a clean build">
+		<delete dir="${jena.success.dir}" />
+        	<delete dir="${jena.success.classes.dir}" />
+        	<delete dir="${jena.copy.dir}" />
+        	<delete dir="${lib.success.dir}" />
+        	<delete dir="${test.classes.dir}" />
+	</target>
+
+	<target name="init">
+    		<!-- Create the time stamp -->
+        	<mkdir dir="${jena.copy.dir}" />
+    		<mkdir dir="${jena.success.dir}" />
+    		<mkdir dir="${jena.success.classes.dir}" />
+    		<mkdir dir="${jena.success.etc.dir}" />
+    		<mkdir dir="${lib.success.dir}" />
+    		<mkdir dir="${test.classes.dir}" />
+    		<tstamp/>
+  	</target>
+
+	 <!-- compile tests -->
+  	<target name="compile-test-classes" depends="init, compile-src-jena-2.5.6-classes, compile-src-jena-2.5.7-classes, create-jena-2.5.6-patch, create-jena-2.5.7-patch"
+                description="Compile the test source files under ${test.success.dir}">
+        	<javac
+                	srcdir="${test.dir}"
+                	destdir="${test.classes.dir}" >
+                	<classpath refid="classpath-success" />
+        	</javac>
+  	</target>
+
+	<!-- compile changed src files -->
+  	<target name="compile-src-jena-2.5.6-classes"
+                depends="init"
+                description="Compile the copied Jena source tree into class files under ${jena.success.classes.dir}"
+                if="jena.version.256">
+        	<copy todir="${jena.success.dir}">
+                	<fileset dir="${jena.success256.dir}" />
+        	</copy>
+        	<copy todir="${jena.success.dir}">
+                	<fileset dir="${jena.extension.dir}" />
+        	</copy>
+        	<javac
+                	srcdir="${jena.success.dir}"
+                	destdir="${jena.success.classes.dir}"
+                	debug="true"
+       	 	>
+        		<classpath refid="classpath.fail.256"/>
+        	</javac>
+  	</target>
+
+  	<!-- compile changed src files -->
+  	<target name="compile-src-jena-2.5.7-classes"
+                depends="init"
+                description="Compile the copied Jena source tree into class files under ${jena.success.classes.dir}"
+                unless="jena.version.256">
+        	<copy todir="${jena.success.dir}">
+                	<fileset dir="${jena.success257.dir}" />
+        	</copy>
+        	<copy todir="${jena.success.dir}">
+                	<fileset dir="${jena.success256.dir}" />
+        	</copy>
+        	<copy todir="${jena.success.dir}">
+                	<fileset dir="${jena.extension.dir}" />
+        	</copy>
+        	<javac
+                	srcdir="${jena.success.dir}"
+                	destdir="${jena.success.classes.dir}"
+                	debug="true"
+        	>
+        		<classpath refid="classpath.fail.257"/>
+        	</javac>
+  	</target>
+
+	<!-- create the new patch -->
+  	<target name="create-jena-2.5.6-patch"
+                depends="init, compile-src-jena-2.5.6-classes"
+                description="Create the new jena patch based on the modified files"
+                if="jena.version.256">
+        	<copy todir="${jena.success.classes.dir}/etc">
+                	<fileset dir="${jena.success.etc.dir}" />
+        	</copy>
+        	<jar
+                	destfile="${lib.success.dir}/patch_jena-2.5.6.jar"
+                	basedir="${jena.success.classes.dir}">
+        	</jar>
+ 	</target>
+
+  	<!-- create the new patch -->
+  	<target name="create-jena-2.5.7-patch"
+                depends="init, compile-src-jena-2.5.7-classes"
+                description="Create the new jena patch based on the modified files"
+                unless="jena.version.256">
+        	<copy todir="${jena.success.classes.dir}/etc">
+                	<fileset dir="${jena.success.etc.dir}" />
+        	</copy>
+        	<jar
+                	destfile="${lib.success.dir}/patch_jena-2.5.7.jar"
+                	basedir="${jena.success.classes.dir}">
+        	</jar>
+ 	</target>
+
+	<path id="classpath.fail.256">
+        	<fileset dir="${lib.fail256.dir}" includes="*.jar" />
+  	</path>
+
+  	<path id="classpath.fail.257">
+        	<fileset dir="${lib.fail257.dir}" includes="*.jar" />
+  	</path>
+
+	<!-- Classpaths for success case -->
+  	<path id="classpath-success">
+        	<fileset dir="${lib.success.dir}" includes="*.jar" />
+        	<fileset dir="${lib.fail256.dir}" includes="*.jar" />
+        	<fileset dir="${lib.fail257.dir}" includes="*.jar" />
+  	</path>
+  	<path id="run-classpath-success">
+        	<pathelement path="${test.classes.dir}" />
+  	</path>
+
+	<target name="run-algorithm-extension-test" depends="compile-test-classes">
+        	<java classname="${run.algorithm.test}" maxmemory="1g" fork="yes">
+               		<sysproperty key="property.delayFactor" value="10" />
+                	<classpath refid="classpath-success" />
+                	<classpath refid="run-classpath-success" />
+                	<jvmarg value="-XX:-UseGCOverheadLimit" />
+                	<jvmarg value="-Xms1g" />
+                	<jvmarg value="-XX:+UseConcMarkSweepGC" />
+                	<arg line="2100 3500"/>
+        	</java>
+  	</target>
+</project>

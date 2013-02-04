@@ -1,0 +1,10 @@
+Infinite Graph INSTALL
+=======================
+
+The infinite graph solution aims at increasing the ability of Jena to create large RDF graphs based on a caching algorithm derived from various memory management algorithms. We also use Lucene to index the nodes that need to be written to disk.
+ 
+To use this software all the .jar files under lib/ must be on the classpath and must be available to your application.
+
+Also use the "create-jena-patch" target from the build.xml file to create a patch and place this patch on the classpath.
+ 
+Infinite graph is tested with these .jar files.

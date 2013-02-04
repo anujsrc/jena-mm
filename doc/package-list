@@ -1,0 +1,13 @@
+edu.utdallas.paged.assembler
+edu.utdallas.paged.db
+edu.utdallas.paged.graph
+edu.utdallas.paged.graph.query
+edu.utdallas.paged.mem.algorithm
+edu.utdallas.paged.mem.cache
+edu.utdallas.paged.mem.disk
+edu.utdallas.paged.mem.util
+edu.utdallas.paged.query
+edu.utdallas.paged.rdf.model
+edu.utdallas.paged.sdb
+edu.utdallas.paged.sdb.graph
+edu.utdallas.paged.shared.impl

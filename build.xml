@@ -1,0 +1,295 @@
+<project name="jena" default="all" basedir=".">
+
+  <!-- Property file for build.xml -->
+  <property file="build.properties"/>
+
+  <!-- all memory tests -->
+  <target name="all" depends="init, compile-src-jena-classes, create-jena-patch, compile-sp2b-classes, compile-test-classes, run-memory-jena, run-memory-ig, run-disk-ig, run-all-ig"
+ 	  description="Compile and run the failed and successful tests" />
+
+  <!-- all db tests -->
+  <target name="all-db-tests" depends="init, compile-src-jena-classes, create-jena-patch, compile-test-classes, run-db-fail, run-db-success, run-sdb-fail, run-sdb-success"
+ 	  description="Compile and run the failed and successful tests" />
+
+  <!-- clean classes -->
+  <target name="clean" description="remove all contents to ensure a clean build">
+	<delete dir="${jena.success.classes.dir}" />
+	<delete dir="${lib.success.dir}" />
+	<delete dir="${test.classes.dir}" />
+	<delete dir="${test.sp2b.classes.dir}" />
+  </target>
+
+  <target name="init">
+    <!-- Create the time stamp -->
+    <mkdir dir="${jena.success.classes.dir}" />
+    <mkdir dir="${lib.success.dir}" /> 
+    <mkdir dir="${test.classes.dir}" />
+    <mkdir dir="${test.sp2b.classes.dir}" />
+    <tstamp/>
+  </target>
+
+  <!-- compile tests -->
+  <target name="compile-test-classes" depends="init, compile-src-jena-classes, create-jena-patch"
+	description="Compile the test source files under ${test.dir}">
+	<javac 
+		srcdir="${test.dir}"
+		destdir="${test.classes.dir}" >
+		<classpath refid="classpath-success" />
+	</javac>
+  </target>
+
+  <!-- compile tests -->
+  <target name="compile-sp2b-classes" depends="init, compile-src-jena-classes, create-jena-patch"
+	description="Compile the test source files under ${test.sp2b.dir}">
+	<javac 
+		srcdir="${test.sp2b.dir}"
+		destdir="${test.sp2b.classes.dir}" >
+		<classpath refid="classpath-success" />
+	</javac>
+  </target>
+
+  <!-- compile changed src files -->
+  <target name="compile-src-jena-classes" 
+          depends="init"
+	  description="Compile the copied Jena source tree into class files under ${jena.success.classes.dir}">
+  	<javac
+		srcdir="${jena.success.dir}"
+		destdir="${jena.success.classes.dir}"
+		debug="true"
+	>
+	<classpath refid="classpath-fail"/>
+  	</javac>
+  </target>
+
+  <!-- create the new patch -->
+  <target name="create-jena-patch" 
+          depends="init, compile-src-jena-classes"
+	  description="Create the new jena patch based on the modified files">
+	<copy todir="${jena.success.classes.dir}/etc">
+		<fileset dir="${jena.success.etc.dir}" />
+	</copy>
+  	<jar
+		destfile="${lib.success.dir}/patch_jena.jar"
+		basedir="${jena.success.classes.dir}">
+  	</jar>
+ </target>
+
+  <path id="classpath-fail">
+	<fileset dir="${lib.fail.dir}" includes="*.jar" />
+  </path>
+
+  <path id="run-classpath-fail">
+    	<pathelement path="${test.classes.dir}" />
+  </path>
+
+  <!-- Classpaths for success case -->
+  <path id="classpath-success">
+    	<fileset dir="${lib.success.dir}" includes="*.jar" />
+	<fileset dir="${lib.fail.dir}" includes="*.jar" />
+  </path>
+  <path id="run-classpath-success">
+    	<pathelement path="${test.classes.dir}" />
+    	<pathelement path="${test.sp2b.classes.dir}" />
+  </path>
+
+  <target name="run-memory-jena" depends="compile-test-classes">
+    	<java classname="${run.memory.jena}" maxmemory="1g" fork="yes">
+      		<classpath refid="classpath-fail" />
+      		<classpath refid="run-classpath-fail" />
+		<jvmarg value="-XX:-UseGCOverheadLimit" />
+		<jvmarg value="-Xms1g" />
+		<jvmarg value="-XX:+UseConcMarkSweepGC" />
+		<arg line="210 350"/>
+    	</java>
+  </target>
+ 
+  <target name="run-memory-ig" depends="compile-src-jena-classes, create-jena-patch, compile-test-classes">
+    	<java classname="${run.memory.ig}" maxmemory="1g" fork="yes">
+		<sysproperty key="property.delayFactor" value="10" />
+		<sysproperty key="property.cache" value="edu.utdallas.paged.mem.cache.CacheSEfficient" />
+		<sysproperty key="property.algorithm" value="edu.utdallas.paged.mem.algorithm.NodeStampDegreeCentrality" />
+      		<classpath refid="classpath-success" />
+      		<classpath refid="run-classpath-success" />
+		<jvmarg value="-XX:-UseGCOverheadLimit" />
+		<jvmarg value="-Xms1g" />
+		<jvmarg value="-XX:+UseConcMarkSweepGC" />
+		<arg line="210 350"/>
+    	</java>
+  </target>
+
+  <target name="run-disk-ig" depends="compile-src-jena-classes, create-jena-patch, compile-test-classes">
+    	<java classname="${run.disk.ig}" maxmemory="1g" fork="yes">
+		<sysproperty key="property.delayFactor" value="10" />
+		<sysproperty key="property.cache" value="edu.utdallas.paged.mem.cache.CacheSEfficient" />
+		<sysproperty key="property.algorithm" value="edu.utdallas.paged.mem.algorithm.NodeStampDegreeCentrality" />
+      		<classpath refid="classpath-success" />
+      		<classpath refid="run-classpath-success" />
+		<jvmarg value="-XX:-UseGCOverheadLimit" />
+		<jvmarg value="-Xms1g" />
+		<jvmarg value="-XX:+UseConcMarkSweepGC" />
+		<arg line="210 350"/>
+    	</java>
+  </target>
+
+  <target name="run-all-ig" depends="compile-src-jena-classes, create-jena-patch, compile-test-classes">
+    	<java classname="${run.all.ig}" maxmemory="1g" fork="yes">
+		<sysproperty key="property.delayFactor" value="10" />
+		<sysproperty key="property.cache" value="edu.utdallas.paged.mem.cache.CacheSEfficient" />
+		<sysproperty key="property.algorithm" value="edu.utdallas.paged.mem.algorithm.NodeStampDegreeCentrality" />
+      		<classpath refid="classpath-success" />
+      		<classpath refid="run-classpath-success" />
+		<jvmarg value="-XX:-UseGCOverheadLimit" />
+		<jvmarg value="-Xms1g" />
+		<jvmarg value="-XX:+UseConcMarkSweepGC" />
+		<arg line="630 1050"/>
+    	</java>
+  </target>
+
+  <target name="run-mem-disk-ig" depends="compile-src-jena-classes, create-jena-patch, compile-test-classes">
+    	<java classname="${run.mem-disk.ig}" maxmemory="1g" fork="yes">
+		<sysproperty key="property.delayFactor" value="10" />
+		<sysproperty key="property.cache" value="edu.utdallas.paged.mem.cache.CacheSEfficient" />
+		<sysproperty key="property.algorithm" value="edu.utdallas.paged.mem.algorithm.NodeStampDegreeCentrality" />
+      		<classpath refid="classpath-success" />
+      		<classpath refid="run-classpath-success" />
+		<jvmarg value="-XX:-UseGCOverheadLimit" />
+		<jvmarg value="-Xms1g" />
+		<jvmarg value="-XX:+UseConcMarkSweepGC" />
+		<arg line="210 350"/>
+    	</java>
+  </target>
+  
+  <target name="run-db-fail" depends="compile-test-classes">
+    	<java classname="${run.db.fail}" maxmemory="1g" fork="yes">
+      		<classpath refid="classpath-fail" />
+      		<classpath refid="run-classpath-fail" />
+		<jvmarg value="-XX:-UseGCOverheadLimit" />
+		<jvmarg value="-Xms1g" />
+		<jvmarg value="-XX:+UseConcMarkSweepGC" />
+		<arg line="10 30 ${db.classname} ${db.url} ${db.name} ${db.username} ${db.password} ${db.type}"/>
+    	</java>
+  </target>
+
+  <target name="run-db-success" depends="compile-src-jena-classes, create-jena-patch, compile-test-classes">
+    	<java classname="${run.db.success}" maxmemory="1g" fork="yes">
+		<sysproperty key="property.delayFactor" value="10" />
+		<sysproperty key="property.cache" value="edu.utdallas.paged.mem.cache.CacheSEfficient" />
+		<sysproperty key="property.algorithm" value="edu.utdallas.paged.mem.algorithm.NodeStampDegreeCentrality" />
+      		<classpath refid="classpath-success" />
+      		<classpath refid="run-classpath-success" />
+		<jvmarg value="-XX:-UseGCOverheadLimit" />
+		<jvmarg value="-Xms1g" />
+		<jvmarg value="-XX:+UseConcMarkSweepGC" />
+		<arg line="10 30 ${db.classname} ${db.url} ${db.name} ${db.username} ${db.password} ${db.type}"/>
+    	</java>
+  </target>
+
+  <target name="run-sdb-fail" depends="compile-test-classes">
+    	<java classname="${run.sdb.fail}" maxmemory="1g" fork="yes">
+      		<classpath refid="classpath-fail" />
+      		<classpath refid="run-classpath-fail" />
+		<jvmarg value="-XX:-UseGCOverheadLimit" />
+		<jvmarg value="-Xms1g" />
+		<jvmarg value="-XX:+UseConcMarkSweepGC" />
+		<arg line="20 60 ${db.layout} ${db.type} ${db.classname} ${db.url} ${sdb.name} ${db.username} ${db.password}"/>
+    	</java>
+  </target>
+
+  <target name="run-sdb-success" depends="compile-src-jena-classes, create-jena-patch, compile-test-classes">
+    	<java classname="${run.sdb.success}" maxmemory="1g" fork="yes">
+		<sysproperty key="property.delayFactor" value="10" />
+		<sysproperty key="property.cache" value="edu.utdallas.paged.mem.cache.CacheSEfficient" />
+		<sysproperty key="property.algorithm" value="edu.utdallas.paged.mem.algorithm.NodeStampDegreeCentrality" />
+      		<classpath refid="classpath-success" />
+      		<classpath refid="run-classpath-success" />
+		<jvmarg value="-XX:-UseGCOverheadLimit" />
+		<jvmarg value="-Xms1g" />
+		<jvmarg value="-XX:+UseConcMarkSweepGC" />
+		<arg line="20 60 ${db.layout} ${db.type} ${db.classname} ${db.url} ${sdb.name} ${db.username} ${db.password}"/>
+    	</java>
+  </target>
+  
+  <target name="run-sp2b" depends="compile-src-jena-classes, create-jena-patch, compile-sp2b-classes">
+    	<java classname="${run.sp2b}" maxmemory="1g" fork="yes">
+		<sysproperty key="property.delayFactor" value="10" />
+		<sysproperty key="property.cache" value="edu.utdallas.paged.mem.cache.CacheSEfficient" />
+		<sysproperty key="property.algorithm" value="edu.utdallas.paged.mem.algorithm.NodeStampDegreeCentrality" />
+      		<classpath refid="classpath-success" />
+      		<classpath refid="run-classpath-success" />
+		<jvmarg value="-XX:-UseGCOverheadLimit" />
+		<jvmarg value="-Xms1g" />
+		<jvmarg value="-XX:+UseConcMarkSweepGC" />
+		<arg line="${sp2b.input}"/>
+    	</java>
+  </target>
+
+  <target name="run-db-sp2b" depends="compile-src-jena-classes, create-jena-patch, compile-sp2b-classes">
+    	<java classname="${run.db.sp2b}" maxmemory="1g" fork="yes">
+		<sysproperty key="property.delayFactor" value="10" />
+		<sysproperty key="property.cache" value="edu.utdallas.paged.mem.cache.CacheSEfficient" />
+		<sysproperty key="property.algorithm" value="edu.utdallas.paged.mem.algorithm.NodeStampDegreeCentrality" />
+      		<classpath refid="classpath-success" />
+      		<classpath refid="run-classpath-success" />
+		<jvmarg value="-XX:-UseGCOverheadLimit" />
+		<jvmarg value="-Xms1g" />
+		<jvmarg value="-XX:+UseConcMarkSweepGC" />
+		<arg line="${db.classname} ${db.url} ${db.name} ${db.username} ${db.password} ${db.type} ${sp2b.storename} ${sp2b.input}"/>
+    	</java>
+  </target>
+
+  <target name="run-sdb-sp2b" depends="compile-src-jena-classes, create-jena-patch, compile-sp2b-classes">
+    	<java classname="${run.sdb.sp2b}" maxmemory="1g" fork="yes">
+		<sysproperty key="property.delayFactor" value="10" />
+		<sysproperty key="property.cache" value="edu.utdallas.paged.mem.cache.CacheSEfficient" />
+		<sysproperty key="property.algorithm" value="edu.utdallas.paged.mem.algorithm.NodeStampDegreeCentrality" />
+      		<classpath refid="classpath-success" />
+      		<classpath refid="run-classpath-success" />
+		<jvmarg value="-XX:-UseGCOverheadLimit" />
+		<jvmarg value="-Xms1g" />
+		<jvmarg value="-XX:+UseConcMarkSweepGC" />
+		<arg line="${db.layout} ${db.type} ${db.classname} ${db.url} ${sdb.name} ${db.username} ${db.password} ${sp2b.storename} ${sp2b.input} "/>
+    	</java>
+  </target>
+
+  <target name="run-lubm" depends="compile-src-jena-classes, create-jena-patch, compile-sp2b-classes">
+        <java classname="${run.lubm}" maxmemory="1g" fork="yes">
+                <sysproperty key="property.delayFactor" value="10" />
+                <sysproperty key="property.cache" value="edu.utdallas.paged.mem.cache.CacheSubject" />
+                <sysproperty key="property.algorithm" value="edu.utdallas.paged.mem.algorithm.NodeStampMRU" />
+                <classpath refid="classpath-success" />
+                <classpath refid="run-classpath-success" />
+                <jvmarg value="-XX:-UseGCOverheadLimit" />
+                <jvmarg value="-Xms1g" />
+                <jvmarg value="-XX:+UseConcMarkSweepGC" />
+                <arg line="${lubm.input}"/>
+        </java>
+  </target>
+  
+  <target name="run-db-lubm" depends="compile-src-jena-classes, create-jena-patch, compile-sp2b-classes">
+    	<java classname="${run.db.lubm}" maxmemory="1g" fork="yes">
+		<sysproperty key="property.delayFactor" value="10" />
+		<sysproperty key="property.cache" value="edu.utdallas.paged.mem.cache.CacheSubject" />
+		<sysproperty key="property.algorithm" value="edu.utdallas.paged.mem.algorithm.NodeStampMRU" />
+      		<classpath refid="classpath-success" />
+      		<classpath refid="run-classpath-success" />
+		<jvmarg value="-XX:-UseGCOverheadLimit" />
+		<jvmarg value="-Xms1g" />
+		<jvmarg value="-XX:+UseConcMarkSweepGC" />
+		<arg line="${db.classname} ${db.url} ${db.name} ${db.username} ${db.password} ${db.type} ${lubm.storename} ${lubm.input}"/>
+    	</java>
+  </target>
+  
+  <target name="run-sdb-lubm" depends="compile-src-jena-classes, create-jena-patch, compile-sp2b-classes">
+    	<java classname="${run.sdb.lubm}" maxmemory="1g" fork="yes">
+		<sysproperty key="property.delayFactor" value="10" />
+		<sysproperty key="property.cache" value="edu.utdallas.paged.mem.cache.CacheSubject" />
+		<sysproperty key="property.algorithm" value="edu.utdallas.paged.mem.algorithm.NodeStampMRU" />
+      		<classpath refid="classpath-success" />
+      		<classpath refid="run-classpath-success" />
+		<jvmarg value="-XX:-UseGCOverheadLimit" />
+		<jvmarg value="-Xms1g" />
+		<jvmarg value="-XX:+UseConcMarkSweepGC" />
+		<arg line="${db.layout} ${db.type} ${db.classname} ${db.url} ${sdb.name} ${db.username} ${db.password} ${lubm.storename} ${lubm.input} "/>
+    	</java>
+  </target>
+</project>

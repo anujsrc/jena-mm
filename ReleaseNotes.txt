@@ -1,0 +1,25 @@
+Release Notes
+==============
+
+==== post jena-ig-extension-0.1.tar.gz
+
+Cache:
+	o Ability to create a cache based on only subjects, subjects and objects, or subjects, predicates and objects.
+
+Cache Algorithm:
+	o Added other memeory management algorithms like MRU, FIFO, LIFO, degree centrality, individual clustering coefficient and transitive clustering coefficient.
+
+ARQ:
+	o Added the ability to query this extended model with SPARQL queries.
+
+Benchmark testing:
+	o Added a sample Sp2b benchmark data file and queries under src-examples/data and src-examples/benchmark respectively. 
+          The queries can be run on the extended in-memory model or the RDB model.
+
+==== post jena-ig-extension-0.2.tar.gz
+
+Extended model:
+	o Added the ability to create a unified model that transitions from the extended in-memory model to the RDB model when a large number of triples is streamed by the user application.
+
+Reasoning:
+	o Added the ability to create Ontology models with this extension.
